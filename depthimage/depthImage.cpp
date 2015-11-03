@@ -54,7 +54,6 @@ DepthImage::DepthImage(string basepath,int nImg):DepthImage(){
 DepthImage::~DepthImage() {
 	// TODO Auto-generated destructor stub
 }
-
 Point3f DepthImage::getPoint3D(int u,int v){
 	float x=u;
 	float y=v;
