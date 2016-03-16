@@ -71,6 +71,37 @@ Point3f DepthImage::getPoint3Ddeep(int u,int v,float deep){
 	float Y = (y - cy) * Z / fy;
 	return Point3f(X,Y,Z);
 }
+Point2f DepthImage::project(Point3f p){
+	float X=p.x;
+	float Y=p.y;
+	float Z=p.z;
+	float x=X*fx/Z+cx;
+	float y=Y*fy/Z+cy;
+	return Point2f(x,y);
+}
+float DepthImage::projectiveDistance(Point3f p){
+	Point2f p2D=project(p);
+	if (this->is2DPointInImage(p2D)){
+		int u=p.x;
+		int v=p.y;
+		float d=this->getDepth(u,v);
+		return p.z-d;
+	}
+	return 1e32; //infinity a big number
+}
+bool DepthImage::is2DPointInImage(Point2f p){
+	int u=p.x;
+	int v=p.y;
+	if (u<0)
+		return false;
+	if (v<0)
+		return false;
+	if (u>dImg.cols)
+		return false;
+	if (v>dImg.rows)
+		return false;
+	return true;
+}
 vector<Point3f> DepthImage::getPoints3D(){
 	vector<Point3f> vp;
 	for (int v=0;v<dImg.rows;v++){

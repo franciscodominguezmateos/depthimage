@@ -34,8 +34,12 @@ public:
 	DepthImage(string basepath,int nImg);
 	virtual ~DepthImage();
 	inline Vec3b getColor(int u,int v){return cImg.at<Vec3b>(v,u);}
+	inline float getDepth(int u,int v){return dImg.at<float>(v,u);}
 	Point3f getPoint3D(int u,int v);
 	Point3f getPoint3Ddeep(int u,int v,float deep);
+	Point2f project(Point3f p);
+	bool is2DPointInImage(Point2f p);
+	float projectiveDistance(Point3f p);
 	inline bool isGoodDepthPixel(int u,int v){float d=dImg.at<float>(v,u);return d>1e-6;}//d==0 bad
 	inline bool isGoodPoint3D(Point3f p){return p.z>0.001;}//Z==0 bad
 	vector<Point3f> getPoints3D();
