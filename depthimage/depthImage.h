@@ -34,7 +34,7 @@ public:
 	DepthImage(string basepath,int nImg);
 	virtual ~DepthImage();
 	inline Vec3b getColor(int u,int v){return cImg.at<Vec3b>(v,u);}
-	inline float getDepth(int u,int v){return dImg.at<float>(v,u);}
+	inline float getDepth(int u,int v){return dImg.at<float>(v,u)/factor;}
 	Point3f getPoint3D(int u,int v);
 	Point3f getPoint3Ddeep(int u,int v,float deep);
 	Point2f project(Point3f p);
