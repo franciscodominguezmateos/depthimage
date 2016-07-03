@@ -49,7 +49,8 @@ DepthImage::DepthImage(string basepath,int nImg):DepthImage(){
     }
     depth.convertTo(depth, CV_32F);
 	this->cImg=image;
-	this->dImg=depth;
+	//this->dImg=depth;
+	this->setDepth(depth);
 }
 DepthImage::~DepthImage() {
 	// TODO Auto-generated destructor stub
@@ -120,6 +121,20 @@ vector<Point3f> DepthImage::getPoints3D(){
 	}
 	return vp;
 }
+vector<Point3f> DepthImage::getPoints3DCentered(){
+	vector<Point3f> vp;
+	Point3f centroid=getCentroid();
+	for (int v=0;v<dImg.rows;v++){
+		for (int u=0;u<dImg.cols;u++){
+			if (isGoodDepthPixel(u,v)){
+				Point3f p=getPoint3D(u,v);
+				p-=centroid;
+				vp.push_back(p);
+			}
+		}
+	}
+	return vp;
+}
 void DepthImage::setDepth(const Mat& img) {
 	dImg = img;
 	vector<Point3f> pts=this->getPoints3D();
@@ -146,7 +161,7 @@ void DepthImage::glRender(){
 				float r=col.val[2]/255.0;
 				glColor3f(r,g,b);
 				Point3f p=getPoint3D(u,v);
-				//cout << "x=" << p.x << " y=" << p.y << " z=" << p.z  <<endl;
+				cout << "x=" << p.x << " y=" << p.y << " z=" << p.z  <<endl;
 				glVertex3f(p.x,-p.y,-p.z);
 			}
 		}
