@@ -88,8 +88,8 @@ float DepthImage::projectiveDistance(Point3f p){
 		if(isGoodDepthPixel(u,v)){
 			float d=this->getDepth(u,v);
 			float pd=d-p.z;
-			if(-0.25<pd && pd<0.25){
-				cout << "pd="<<pd << "\td=" << d <<" x=" << p.x << " y=" << p.y << " z=" << p.z <<" u=" << u << " v=" << v <<endl;
+			if(-0.1<pd && pd<0.1){
+				//cout << "pd="<<pd << "\td=" << d <<" x=" << p.x << " y=" << p.y << " z=" << p.z <<" u=" << u << " v=" << v <<endl;
 			    return pd;
 			}
 		}
@@ -161,7 +161,7 @@ void DepthImage::glRender(){
 				float r=col.val[2]/255.0;
 				glColor3f(r,g,b);
 				Point3f p=getPoint3D(u,v);
-				cout << "x=" << p.x << " y=" << p.y << " z=" << p.z  <<endl;
+				//cout << "x=" << p.x << " y=" << p.y << " z=" << p.z  <<endl;
 				glVertex3f(p.x,-p.y,-p.z);
 			}
 		}
