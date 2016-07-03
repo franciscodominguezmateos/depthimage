@@ -65,6 +65,17 @@ public:
 	inline int size(){return cImg.cols*cImg.rows;}
 	inline Point3f getCentroid(){return centroid;}
 	DepthImage sparse();
+    void bilateralDepthFilter(){
+        Mat depth = Mat(dImg.size(), CV_32FC1, Scalar(0));
+        const double depth_sigma = 50;// 0.03;
+        const double space_sigma = 4.5;  // in pixels
+        Mat invalidDepthMask = dImg == 0.f;
+        dImg.setTo(-5*depth_sigma, invalidDepthMask);
+        bilateralFilter(dImg, depth, -1, depth_sigma, space_sigma);
+        depth.setTo(0.f, invalidDepthMask);
+        setDepth(depth);
+    }
+
 	void glRender();
 };
 
