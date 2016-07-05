@@ -38,6 +38,7 @@ public:
 	inline float getDepth(int u,int v){return dImg.at<float>(v,u)/factor;}
 	inline float getDepth(Point2f p){return getDepth((int)p.x,(int)p.y);}
 	Point3f getPoint3D(int u,int v);
+	Point3f getPoint3D(Point2f p){return getPoint3D((int)p.x,(int)p.y);}
 	Point3f getPoint3Ddeep(int u,int v,float deep);
 	Point2f project(Point3f p);
 	bool is2DPointInImage(Point2f p);
