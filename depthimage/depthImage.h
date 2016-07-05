@@ -46,6 +46,7 @@ public:
 	inline bool isGoodDepthPixel(int u,int v){float d=dImg.at<float>(v,u);return d>1e-6;}//d==0 bad
 	inline bool isGoodPoint3D(Point3f p){return p.z>0.001;}//Z==0 bad
 	vector<Point3f> getPoints3D();
+	vector<Vec3b> getColors();
 	vector<Point3f> getPoints3DCentered();
 	inline const Mat& getImg() const {	return cImg;}
 	inline void setImg(const Mat& img) {cImg = img;}

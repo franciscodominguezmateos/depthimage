@@ -121,6 +121,18 @@ vector<Point3f> DepthImage::getPoints3D(){
 	}
 	return vp;
 }
+vector<Vec3b> DepthImage::getColors(){
+	vector<Vec3b> vp;
+	for (int v=0;v<dImg.rows;v++){
+		for (int u=0;u<dImg.cols;u++){
+			if (isGoodDepthPixel(u,v)){
+				Vec3b p=getColor(u,v);
+				vp.push_back(p);
+			}
+		}
+	}
+	return vp;
+}
 vector<Point3f> DepthImage::getPoints3DCentered(){
 	vector<Point3f> vp;
 	Point3f centroid=getCentroid();
