@@ -32,11 +32,66 @@ vector<string> DepthImage::split(string line){
 		words.push_back(str);
 	return words;
 }
+/*
+def transform44(l):
+"""
+Generate a 4x4 homogeneous transformation matrix from a 3D point and unit quaternion.
+
+Input:
+l -- tuple consisting of (stamp,tx,ty,tz,qx,qy,qz,qw) where
+     (tx,ty,tz) is the 3D position and (qx,qy,qz,qw) is the unit quaternion.
+
+Output:
+matrix -- 4x4 homogeneous transformation matrix
+"""
+t = l[1:4]
+q = numpy.array(l[4:8], dtype=numpy.float64, copy=True)
+nq = numpy.dot(q, q)
+if nq < _EPS:
+    return numpy.array((
+    (                1.0,                 0.0,                 0.0, t[0])
+    (                0.0,                 1.0,                 0.0, t[1])
+    (                0.0,                 0.0,                 1.0, t[2])
+    (                0.0,                 0.0,                 0.0, 1.0)
+    ), dtype=numpy.float64)
+q *= numpy.sqrt(2.0 / nq)
+q = numpy.outer(q, q)
+return numpy.array((
+    (1.0-q[1, 1]-q[2, 2],     q[0, 1]-q[2, 3],     q[0, 2]+q[1, 3], t[0]),
+    (    q[0, 1]+q[2, 3], 1.0-q[0, 0]-q[2, 2],     q[1, 2]-q[0, 3], t[1]),
+    (    q[0, 2]-q[1, 3],     q[1, 2]+q[0, 3], 1.0-q[0, 0]-q[1, 1], t[2]),
+    (                0.0,                 0.0,                 0.0, 1.0)
+    ), dtype=numpy.float64)
+
+*/
+void DepthImage::getTransform(vector<string> l){
+	int pidx=4;
+	double tx=atof(l[pidx+1].c_str());
+	double ty=atof(l[pidx+2].c_str());
+	double tz=atof(l[pidx+3].c_str());
+	double qx=atof(l[pidx+4].c_str());
+	double qy=atof(l[pidx+5].c_str());
+	double qz=atof(l[pidx+6].c_str());
+	double qw=atof(l[pidx+7].c_str());
+	double nq=qx*qx + qy*qy + qz*qz + qw*qw;
+	qx*=sqrt(2.0/nq);
+	qy*=sqrt(2.0/nq);
+	qz*=sqrt(2.0/nq);
+	qw*=sqrt(2.0/nq);
+	R  = (Mat_<double>(3, 3) << 1.0-qy*qy-qz*qz,    qx*qy-qz*qw,    qx*qz+qy*qw,
+			                        qx*qy+qz*qw,1.0-qx*qx-qz*qz,    qy*qz-qx*qw,
+									qx*qz-qy*qw,    qy*qz+qx*qw,1.0-qx*qx-qy*qy);
+	t  = (Mat_<double>(3, 1) << tx, ty, tz);
+}
 DepthImage::DepthImage(string basepath,int nImg):DepthImage(){
 	string assopath,imagepath,depthpath;
-	assopath=basepath+"/association.txt";
+	R  = (Mat_<double>(3, 3) << 1., 0., 0., 0., 1., 0., 0., 0., 1.);
+	t  = (Mat_<double>(3, 1) << 0., 0., 0.);
+	assopath=basepath+"/associationgt.txt";
 	vector<string> lines=getLinesFromFile(assopath);
 	vector<string> words=split(lines[nImg]);
+	if(words.size()==12)
+		getTransform(words);
     imagepath=basepath +"/"+words[1];
     depthpath=basepath +"/"+words[3];
     Mat image = imread(imagepath, IMREAD_COLOR );
@@ -64,6 +119,11 @@ Point3f DepthImage::getPoint3D(int u,int v){
 	float Y = (y - cy) * Z / fy;
 	return Point3f(X,Y,Z);
 }
+Point3f DepthImage::getGlobalPoint3D(int u,int v){
+	Point3f p=getPoint3D(u,v);
+	return toGlobal(p);
+}
+
 Point3f DepthImage::getPoint3Ddeep(int u,int v,float deep){
 	float x=u;
 	float y=v;
@@ -121,6 +181,18 @@ vector<Point3f> DepthImage::getPoints3D(){
 	}
 	return vp;
 }
+vector<Point3f> DepthImage::getGlobalPoints3D(){
+	vector<Point3f> vp;
+	for (int v=0;v<dImg.rows;v++){
+		for (int u=0;u<dImg.cols;u++){
+			if (isGoodDepthPixel(u,v)){
+				Point3f p=getGlobalPoint3D(u,v);
+				vp.push_back(p);
+			}
+		}
+	}
+	return vp;
+}
 vector<Vec3b> DepthImage::getColors(){
 	vector<Vec3b> vp;
 	for (int v=0;v<dImg.rows;v++){
@@ -172,9 +244,10 @@ void DepthImage::glRender(){
 				float g=col.val[1]/255.0;
 				float r=col.val[2]/255.0;
 				glColor3f(r,g,b);
-				Point3f p=getPoint3D(u,v);
+				Point3f p=getGlobalPoint3D(u,v);
 				//cout << "x=" << p.x << " y=" << p.y << " z=" << p.z  <<endl;
-				glVertex3f(p.x,-p.y,-p.z);
+				//glVertex3f(p.x,-p.y,-p.z);
+				glVertex3f(p.x,p.y,p.z);
 			}
 		}
 	}

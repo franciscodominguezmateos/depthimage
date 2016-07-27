@@ -22,6 +22,9 @@ using namespace std;
 class DepthImage {
 	Mat dImg;
 	Mat cImg;
+	//Rt transformation for this camera
+	Mat R;
+	Mat t;
 	float fx,fy;
 	float cx,cy;
 	float level; //pyramid level
@@ -38,6 +41,7 @@ public:
 	inline float getDepth(int u,int v){return dImg.at<float>(v,u)/factor;}
 	inline float getDepth(Point2f p){return getDepth((int)p.x,(int)p.y);}
 	Point3f getPoint3D(int u,int v);
+	Point3f getGlobalPoint3D(int u,int v);
 	Point3f getPoint3D(Point2f p){return getPoint3D((int)p.x,(int)p.y);}
 	Point3f getPoint3Ddeep(int u,int v,float deep);
 	Point2f project(Point3f p);
@@ -46,6 +50,7 @@ public:
 	inline bool isGoodDepthPixel(int u,int v){float d=dImg.at<float>(v,u);return d>1e-6;}//d==0 bad
 	inline bool isGoodPoint3D(Point3f p){return p.z>0.001;}//Z==0 bad
 	vector<Point3f> getPoints3D();
+	vector<Point3f> getGlobalPoints3D();
 	vector<Vec3b> getColors();
 	vector<Point3f> getPoints3DCentered();
 	inline const Mat& getImg() const {	return cImg;}
@@ -79,7 +84,19 @@ public:
         depth.setTo(0.f, invalidDepthMask);
         setDepth(depth);
     }
+    void getTransform(vector<string> l);
+    Mat getR(){return R;}
+    Mat getT(){return t;}
+    Point3f toGlobal(Point3f &p){
+    	Mat mp=(Mat_<double>(3, 1) << p.x, p.y, p.z);
+    	//cout << "mp"<< mp << endl;
+    	Mat tp=R*mp+t;
+    	//cout << "tp"<< tp << endl;
+    	return Point3f(tp.at<double>(0,0),tp.at<double>(1,0),tp.at<double>(2,0));
+    }
+    Point3f toLocal(Point3f &p){
 
+    }
 	void glRender();
 };
 
