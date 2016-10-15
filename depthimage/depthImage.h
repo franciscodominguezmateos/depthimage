@@ -41,7 +41,7 @@ public:
 	inline void  setColor(int u,int v,Vec3b c){cImg.at<Vec3b>(v,u)=c;}
 	inline float getDepth(int u,int v){return dImg.at<float>(v,u)/factor;}
 	inline float getDepth(Point2f p){return getDepth((int)p.x,(int)p.y);}
-	inline void  setDepth(int u,int v,float d){dImg.at<float>(u,v)=d*factor;}
+	inline void  setDepth(int u,int v,float d){dImg.at<float>(v,u)=d;}
 	Point3f getPoint3D(int u,int v);
 	Point3f getGlobalPoint3D(int u,int v);
 	Point3f getPoint3D(Point2f p){return getPoint3D((int)p.x,(int)p.y);}
