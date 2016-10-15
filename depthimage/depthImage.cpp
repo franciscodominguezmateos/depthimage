@@ -85,7 +85,9 @@ void DepthImage::getTransform(vector<string> l){
 }
 DepthImage::DepthImage(string basepath,int nImg):DepthImage(){
 	string assopath,imagepath,depthpath;
-	R  = (Mat_<double>(3, 3) << 1., 0., 0., 0., 1., 0., 0., 0., 1.);
+	R  = (Mat_<double>(3, 3) << 1., 0., 0.,
+			                    0., 1., 0.,
+								0., 0., 1.);
 	t  = (Mat_<double>(3, 1) << 0., 0., 0.);
 	assopath=basepath+"/associationgt.txt";
 	vector<string> lines=getLinesFromFile(assopath);

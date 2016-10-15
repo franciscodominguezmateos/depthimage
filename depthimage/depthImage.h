@@ -38,8 +38,10 @@ public:
 	virtual ~DepthImage();
 	inline Vec3b getColor(int u,int v){return cImg.at<Vec3b>(v,u);}
 	inline Vec3b getColor(Point2f p){return getColor((int)p.x,(int)p.y);}
+	inline void  setColor(int u,int v,Vec3b c){cImg.at<Vec3b>(v,u)=c;}
 	inline float getDepth(int u,int v){return dImg.at<float>(v,u)/factor;}
 	inline float getDepth(Point2f p){return getDepth((int)p.x,(int)p.y);}
+	inline void  setDepth(int u,int v,float d){dImg.at<float>(u,v)=d*factor;}
 	Point3f getPoint3D(int u,int v);
 	Point3f getGlobalPoint3D(int u,int v);
 	Point3f getPoint3D(Point2f p){return getPoint3D((int)p.x,(int)p.y);}
@@ -85,8 +87,11 @@ public:
         setDepth(depth);
     }
     void getTransform(vector<string> l);
-    Mat getR(){return R;}
-    Mat getT(){return t;}
+    inline Mat  getR(){return R;}
+    inline Mat  getT(){return t;}
+    inline void setR(Mat Rp){Rp.copyTo(R);}
+    inline void setT(Mat tp){tp.copyTo(t);}
+    inline void setPose(Mat Rp,Mat tp){setR(Rp);setT(tp);}
     Point3f toGlobal(Point3f &p){
     	Mat mp=(Mat_<double>(3, 1) << p.x, p.y, p.z);
     	//cout << "mp"<< mp << endl;
