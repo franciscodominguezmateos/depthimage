@@ -33,6 +33,14 @@ class DepthImage {
 	vector<string> getLinesFromFile(string fileName);
 	vector<string> split(string line);
 public:
+	void setCameraMatrixFreiburg1()
+	{
+	    fx = 517.3f; fy = 516.5f; cx = 318.6f; cy = 255.3f;
+	}
+	void setCameraMatrixFreiburg2()
+	{
+	    fx = 520.9f; fy = 521.0f; cx = 325.1f; cy = 249.7f;
+	}
 	DepthImage();
 	DepthImage(string basepath,int nImg);
 	virtual ~DepthImage();

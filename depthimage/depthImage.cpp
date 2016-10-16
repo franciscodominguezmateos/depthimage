@@ -14,6 +14,7 @@ DepthImage::DepthImage() {
 	fy = 525.0/level;  // focal length y
 	cx = 319.5/level;  // optical center x
 	cy = 239.5/level;  // optical center y
+	setCameraMatrixFreiburg1();
 	factor = 5000.0; // for the 16-bit PNG files
 }
 vector<string> DepthImage::getLinesFromFile(string fileName){
