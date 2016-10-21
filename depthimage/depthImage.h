@@ -108,7 +108,11 @@ public:
     	return Point3f(tp.at<double>(0,0),tp.at<double>(1,0),tp.at<double>(2,0));
     }
     Point3f toLocal(Point3f &p){
-
+    	Mat mp=(Mat_<double>(3, 1) << p.x, p.y, p.z);
+    	//cout << "mp"<< mp << endl;
+    	Mat tp=R.t()*mp-R.t()*t;
+    	//cout << "tp"<< tp << endl;
+    	return Point3f(tp.at<double>(0,0),tp.at<double>(1,0),tp.at<double>(2,0));
     }
 	void glRender();
 };
