@@ -24,7 +24,7 @@ class DepthImage {
 	Mat cImg;
 	Mat gXImg;
 	Mat gYImg;
-	Mat mImg;
+	Mat mImg;// Mask image. Do I need it?
 	//Rt transformation for this camera
 	Mat R;
 	Mat t;
@@ -123,6 +123,8 @@ public:
     	Size sz(cImg.cols*s,cImg.rows*s);
     	cv::pyrDown(cImg,di.cImg,sz);
     	cv::pyrDown(dImg,di.dImg,sz);
+    	cv::pyrDown(gXImg,di.gXImg,sz);
+    	cv::pyrDown(gYImg,di.gYImg,sz);
     	di.fx*=s;
     	di.fy*=s;
     	di.cx*=s;
