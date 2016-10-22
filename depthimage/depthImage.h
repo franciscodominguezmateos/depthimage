@@ -22,6 +22,9 @@ using namespace std;
 class DepthImage {
 	Mat dImg;
 	Mat cImg;
+	Mat gXImg;
+	Mat gYImg;
+	Mat mImg;
 	//Rt transformation for this camera
 	Mat R;
 	Mat t;
@@ -113,6 +116,39 @@ public:
     	Mat tp=R.t()*mp-R.t()*t;
     	//cout << "tp"<< tp << endl;
     	return Point3f(tp.at<double>(0,0),tp.at<double>(1,0),tp.at<double>(2,0));
+    }
+    //new size of the image s=0.5 is halft and 1.0 the same just clone the
+    DepthImage pyrDown(float s){
+    	DepthImage di;
+    	Size sz(cImg.cols*s,cImg.rows*s);
+    	cv::pyrDown(cImg,di.cImg,sz);
+    	cv::pyrDown(dImg,di.dImg,sz);
+    	di.fx*=s;
+    	di.fy*=s;
+    	di.cx*=s;
+    	di.cy*=s;
+    	R.copyTo(di.R);
+    	t.copyTo(di.t);
+    	return di;
+    }
+    void computeGrad(){
+    	  int scale = 1;
+    	  int delta = 0;
+    	  int ddepth = CV_32F;
+
+    	  /// Convert it to gray
+    	  Mat gray;
+    	  cvtColor( cImg, gray, CV_BGR2GRAY );
+    	  //Gaussian blur in order to avoid picks
+    	  GaussianBlur( gray, gray, Size(3,3), 0, 0, BORDER_DEFAULT );
+
+    	  /// Gradient X
+    	  Scharr( gray, gXImg, ddepth, 1, 0, scale, delta, BORDER_DEFAULT );
+    	  //Sobel( gray, gXImg, ddepth, 1, 0, 3, scale, delta, BORDER_DEFAULT );
+
+    	  /// Gradient Y
+    	  Scharr( gray, gYImg, ddepth, 0, 1, scale, delta, BORDER_DEFAULT );
+    	  //Sobel( gray, gYImg, ddepth, 0, 1, 3, scale, delta, BORDER_DEFAULT );
     }
 	void glRender();
 };
