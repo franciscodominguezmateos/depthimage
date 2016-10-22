@@ -67,6 +67,8 @@ public:
 	vector<Vec3b> getColors();
 	vector<Point3f> getPoints3DCentered();
 	inline const Mat& getImg() const {	return cImg;}
+	inline const Mat& getGradXImg() const {return gXImg;}
+	inline const Mat& getGradYImg() const {return gYImg;}
 	inline void setImg(const Mat& img) {cImg = img;}
 	inline float getCx() const {return cx;	}
 	inline void setCx(float cx) {this->cx = cx;}
@@ -123,8 +125,10 @@ public:
     	Size sz(cImg.cols*s,cImg.rows*s);
     	cv::pyrDown(cImg,di.cImg,sz);
     	cv::pyrDown(dImg,di.dImg,sz);
-    	cv::pyrDown(gXImg,di.gXImg,sz);
-    	cv::pyrDown(gYImg,di.gYImg,sz);
+    	if(!gXImg.empty())
+    		cv::pyrDown(gXImg,di.gXImg,sz);
+    	if(!gYImg.empty())
+    		cv::pyrDown(gYImg,di.gYImg,sz);
     	di.fx*=s;
     	di.fy*=s;
     	di.cx*=s;
