@@ -22,6 +22,7 @@ using namespace std;
 class DepthImage {
 	Mat dImg;
 	Mat cImg;
+	Mat gImg;//gray image float
 	Mat gXImg;
 	Mat gYImg;
 	Mat mImg;// Mask image. Do I need it?
@@ -53,6 +54,8 @@ public:
 	inline float getDepth(int u,int v){return dImg.at<float>(v,u);}
 	inline float getDepth(Point2f p){return getDepth((int)p.x,(int)p.y);}
 	inline void  setDepth(int u,int v,float d){dImg.at<float>(v,u)=d;}
+	inline float getGray(int u,int v){return gImg.at<float>(v,u);}
+	inline float getGray(Point2f p){return getGray((int)p.x,(int)p.y);}
 	Point3f getPoint3D(int u,int v);
 	Point3f getGlobalPoint3D(int u,int v);
 	Point3f getPoint3D(Point2f p){return getPoint3D((int)p.x,(int)p.y);}
@@ -62,8 +65,8 @@ public:
 	float projectiveDistance(Point3f p);
 	inline bool isGoodDepthPixel(int u,int v){float d=dImg.at<float>(v,u);return d>1e-6;}//d==0 bad
 	inline bool isGoodPoint3D(Point3f p){return p.z>0.001;}//Z==0 bad
-	inline vector<Point3f> getPoints3D();
-	inline vector<Point2f> getPoints2D();
+	vector<Point3f> getPoints3D();
+	vector<Point2f> getPoints2D();
 	vector<Point3f> getGlobalPoints3D();
 	vector<Vec3b> getColors();
 	vector<Point3f> getPoints3DCentered();
