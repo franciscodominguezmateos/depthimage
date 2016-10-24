@@ -168,9 +168,8 @@ public:
 
     	  /// Convert it to gray
     	  Mat gray;
-    	  cvtColor( cImg, gray, CV_BGR2GRAY );
     	  //Gaussian blur in order to avoid picks
-    	  GaussianBlur( gray, gray, Size(3,3), 0, 0, BORDER_DEFAULT );
+    	  GaussianBlur( gImg, gray, Size(3,3), 0, 0, BORDER_DEFAULT );
 
     	  /// Gradient X
     	  Scharr( gray, gXImg, ddepth, 1, 0, scale, delta, BORDER_DEFAULT );
