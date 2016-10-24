@@ -73,7 +73,13 @@ public:
 	inline const Mat& getImg() const {	return cImg;}
 	inline const Mat& getGradXImg() const {return gXImg;}
 	inline const Mat& getGradYImg() const {return gYImg;}
-	inline void setImg(const Mat& img) {cImg = img;}
+	inline void setImg(const Mat& img) {
+		cImg = img;
+		Mat gtemp;
+		cvtColor(img,gtemp,CV_BGR2GRAY);
+		gtemp.convertTo(gImg,CV_32F);
+		gImg/=255;
+	}
 	inline float getCx() const {return cx;	}
 	inline void setCx(float cx) {this->cx = cx;}
 	inline float getCy() const {return cy;	}
@@ -128,6 +134,7 @@ public:
     	DepthImage di;
     	Size sz(cImg.cols*s,cImg.rows*s);
     	cv::pyrDown(cImg,di.cImg,sz);
+    	cv::pyrDown(gImg,di.gImg,sz);
     	//cv::pyrDown(dImg,di.dImg,sz);
     	//Not so easy to pyrDown depth image dImg,
     	//it is compulsory to reset 0 depths

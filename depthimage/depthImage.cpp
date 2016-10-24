@@ -106,8 +106,7 @@ DepthImage::DepthImage(string basepath,int nImg):DepthImage(){
         printf("No depth data \n");
     }
     depth.convertTo(depth, CV_32F);
-	this->cImg=image;
-	cvtColor(image,gImg,CV_BGR2GRAY);
+	this->setImg(image);
 	//this->dImg=depth;
 	depth/=factor;
 	this->setDepth(depth);
