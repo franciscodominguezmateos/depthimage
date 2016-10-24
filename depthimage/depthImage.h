@@ -50,7 +50,7 @@ public:
 	inline Vec3b getColor(int u,int v){return cImg.at<Vec3b>(v,u);}
 	inline Vec3b getColor(Point2f p){return getColor((int)p.x,(int)p.y);}
 	inline void  setColor(int u,int v,Vec3b c){cImg.at<Vec3b>(v,u)=c;}
-	inline float getDepth(int u,int v){return dImg.at<float>(v,u)/factor;}
+	inline float getDepth(int u,int v){return dImg.at<float>(v,u);}
 	inline float getDepth(Point2f p){return getDepth((int)p.x,(int)p.y);}
 	inline void  setDepth(int u,int v,float d){dImg.at<float>(v,u)=d;}
 	Point3f getPoint3D(int u,int v);
@@ -62,7 +62,8 @@ public:
 	float projectiveDistance(Point3f p);
 	inline bool isGoodDepthPixel(int u,int v){float d=dImg.at<float>(v,u);return d>1e-6;}//d==0 bad
 	inline bool isGoodPoint3D(Point3f p){return p.z>0.001;}//Z==0 bad
-	vector<Point3f> getPoints3D();
+	inline vector<Point3f> getPoints3D();
+	inline vector<Point2f> getPoints2D();
 	vector<Point3f> getGlobalPoints3D();
 	vector<Vec3b> getColors();
 	vector<Point3f> getPoints3DCentered();
@@ -124,7 +125,20 @@ public:
     	DepthImage di;
     	Size sz(cImg.cols*s,cImg.rows*s);
     	cv::pyrDown(cImg,di.cImg,sz);
-    	cv::pyrDown(dImg,di.dImg,sz);
+    	//cv::pyrDown(dImg,di.dImg,sz);
+    	//Not so easy to pyrDown depth image dImg,
+    	//it is compulsory to reset 0 depths
+        //this below doesn't work
+    	di.dImg=Mat::zeros(sz, dImg.type());
+
+    	for(float i=0;i<dImg.rows;i+=1.0/s)
+    		for(float j=0;j<dImg.cols;j+=1.0/s){
+    		    float x=j*s;
+    			float y=i*s;
+    			//if(getDepth(j,i)<0.001)
+    			di.dImg.at<float>(y,x)=getDepth(j,i);
+    		}
+
     	if(!gXImg.empty())
     		cv::pyrDown(gXImg,di.gXImg,sz);
     	if(!gYImg.empty())

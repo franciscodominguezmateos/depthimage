@@ -108,6 +108,7 @@ DepthImage::DepthImage(string basepath,int nImg):DepthImage(){
     depth.convertTo(depth, CV_32F);
 	this->cImg=image;
 	//this->dImg=depth;
+	depth/=factor;
 	this->setDepth(depth);
 }
 DepthImage::~DepthImage() {
@@ -117,7 +118,7 @@ Point3f DepthImage::getPoint3D(int u,int v){
 	float x=u;
 	float y=v;
 	float deep=dImg.at<float>(v,u);
-	float Z=deep/factor;
+	float Z=deep;
 	float X = (x - cx) * Z / fx;
 	float Y = (y - cy) * Z / fy;
 	return Point3f(X,Y,Z);
@@ -178,6 +179,18 @@ vector<Point3f> DepthImage::getPoints3D(){
 		for (int u=0;u<dImg.cols;u++){
 			if (isGoodDepthPixel(u,v)){
 				Point3f p=getPoint3D(u,v);
+				vp.push_back(p);
+			}
+		}
+	}
+	return vp;
+}
+vector<Point2f> DepthImage::getPoints2D(){
+	vector<Point2f> vp;
+	for (int v=0;v<dImg.rows;v++){
+		for (int u=0;u<dImg.cols;u++){
+			if (isGoodDepthPixel(u,v)){
+				Point2f p=Point2f(u,v);
 				vp.push_back(p);
 			}
 		}
