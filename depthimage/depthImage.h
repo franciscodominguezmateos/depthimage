@@ -31,19 +31,20 @@ class DepthImage {
 	Mat t;
 	float fx,fy;
 	float cx,cy;
+	Mat K;//Intrinsic Matrix
 	float level; //pyramid level
 	float factor;//Sturm data set is 5000
 	Point3f centroid;
 	vector<string> getLinesFromFile(string fileName);
 	vector<string> split(string line);
 public:
-	void setCameraMatrixFreiburg1()
-	{
+	void setCameraMatrixFreiburg1(){
 	    fx = 517.3f; fy = 516.5f; cx = 318.6f; cy = 255.3f;
+	    computeK();
 	}
-	void setCameraMatrixFreiburg2()
-	{
+	void setCameraMatrixFreiburg2(){
 	    fx = 520.9f; fy = 521.0f; cx = 325.1f; cy = 249.7f;
+	    computeK();
 	}
 	DepthImage();
 	DepthImage(string basepath,int nImg);
@@ -71,27 +72,35 @@ public:
 	vector<Vec3b> getColors();
 	vector<Point3f> getPoints3DCentered();
 	inline const Mat& getImg() const {	return cImg;}
+	inline const Mat& getGray() const {return gImg;}
 	inline const Mat& getGradXImg() const {return gXImg;}
 	inline const Mat& getGradYImg() const {return gYImg;}
 	inline void setImg(const Mat& img) {
 		cImg = img;
-		Mat gtemp;
-		cvtColor(img,gtemp,CV_BGR2GRAY);
-		gtemp.convertTo(gImg,CV_32F);
-		gImg/=255;
+		cvtColor(img,gImg,CV_BGR2GRAY);
+		//Mat gtemp;
+		//cvtColor(img,gtemp,CV_BGR2GRAY);
+		//gtemp.convertTo(gImg,CV_32F);
+		//gImg/=255;
 	}
-	inline float getCx() const {return cx;	}
-	inline void setCx(float cx) {this->cx = cx;}
-	inline float getCy() const {return cy;	}
-	inline void setCy(float cy) {this->cy = cy;}
 	inline const Mat& getDepth() const {return dImg;	}
 	void setDepth(const Mat& img);
+	inline Mat computeK(){
+		K = (Mat_<double>(3, 3) << f   ,  0.00, cx,
+				                   0.00,  f   , cy,
+								   0.00,  0.00, 1.00);
+	}
+	inline float getCx() const {return cx;	}
+	inline void setCx(float cx) {this->cx = cx;computeK();}
+	inline float getCy() const {return cy;	}
+	inline void setCy(float cy) {this->cy = cy;computeK();}
+	inline float getFx() const {return fx;	}
+	inline void setFx(float fx) {this->fx = fx;computeK();}
+	inline float getFy() const {return fy;	}
+	inline void setFy(float fy) {this->fy = fy;computeK();}
+	inline void getK(){return K;}
 	inline float getFactor() const {return factor;	}
 	inline void setFactor(float factor) {this->factor = factor;}
-	inline float getFx() const {return fx;	}
-	inline void setFx(float fx) {this->fx = fx;}
-	inline float getFy() const {return fy;	}
-	inline void setFy(float fy) {this->fy = fy;}
 	inline float getLevel() const {return level;}
 	inline void setLevel(float level) {this->level = level;}
 	inline int cols(){return cImg.cols;}
