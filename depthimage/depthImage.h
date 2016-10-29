@@ -86,8 +86,8 @@ public:
 	inline const Mat& getDepth() const {return dImg;	}
 	void setDepth(const Mat& img);
 	inline Mat computeK(){
-		K = (Mat_<double>(3, 3) << f   ,  0.00, cx,
-				                   0.00,  f   , cy,
+		K = (Mat_<double>(3, 3) << fx   ,  0.00, cx,
+				                   0.00,  fy   , cy,
 								   0.00,  0.00, 1.00);
 	}
 	inline float getCx() const {return cx;	}
