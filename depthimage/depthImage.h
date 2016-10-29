@@ -98,7 +98,7 @@ public:
 	inline void setFx(float fx) {this->fx = fx;computeK();}
 	inline float getFy() const {return fy;	}
 	inline void setFy(float fy) {this->fy = fy;computeK();}
-	inline void getK(){return K;}
+	inline Mat getK(){return K;}
 	inline float getFactor() const {return factor;	}
 	inline void setFactor(float factor) {this->factor = factor;}
 	inline float getLevel() const {return level;}
