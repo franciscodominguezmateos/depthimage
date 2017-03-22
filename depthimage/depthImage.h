@@ -20,6 +20,7 @@ using namespace cv;
 using namespace std;
 
 class DepthImage {
+	string timestamp;
 	Mat dImg;
 	Mat cImg;
 	Mat gImg;//gray image float
@@ -61,9 +62,9 @@ public:
 	Point3f getGlobalPoint3D(int u,int v);
 	Point3f getPoint3D(Point2f p){return getPoint3D((int)p.x,(int)p.y);}
 	Point3f getPoint3Ddeep(int u,int v,float deep);
-	Point2f project(Point3f p);
-	bool is2DPointInImage(Point2f p);
-	float projectiveDistance(Point3f p);
+	Point2f project(const Point3f &p);
+	bool is2DPointInImage(Point2f &p);
+	float projectiveDistance(const Point3f &p);
 	inline bool isGoodDepthPixel(int u,int v){float d=dImg.at<float>(v,u);return d>1e-6;}//d==0 bad
 	inline bool isGoodPoint3D(Point3f p){return p.z>0.001;}//Z==0 bad
 	vector<Point3f> getPoints3D();
@@ -134,7 +135,7 @@ public:
     Point3f toLocal(Point3f &p){
     	Mat mp=(Mat_<double>(3, 1) << p.x, p.y, p.z);
     	//cout << "mp"<< mp << endl;
-    	Mat tp=R.t()*mp-R.t()*t;
+    	Mat tp=R.t()*(mp-t);
     	//cout << "tp"<< tp << endl;
     	return Point3f(tp.at<double>(0,0),tp.at<double>(1,0),tp.at<double>(2,0));
     }

@@ -95,6 +95,7 @@ DepthImage::DepthImage(string basepath,int nImg):DepthImage(){
 	vector<string> words=split(lines[nImg]);
 	if(words.size()==12)
 		getTransform(words);
+	timestamp=words[0];
     imagepath=basepath +"/"+words[1];
     depthpath=basepath +"/"+words[3];
     Mat image = imread(imagepath, IMREAD_COLOR );
@@ -123,7 +124,7 @@ Point3f DepthImage::getPoint3D(int u,int v){
 	float Y = (y - cy) * Z / fy;
 	return Point3f(X,Y,Z);
 }
-Point3f DepthImage::getGlobalPoint3D(int u,int v){
+inline Point3f DepthImage::getGlobalPoint3D(int u,int v){
 	Point3f p=getPoint3D(u,v);
 	return toGlobal(p);
 }
@@ -136,7 +137,7 @@ Point3f DepthImage::getPoint3Ddeep(int u,int v,float deep){
 	float Y = (y - cy) * Z / fy;
 	return Point3f(X,Y,Z);
 }
-Point2f DepthImage::project(Point3f p){
+Point2f DepthImage::project(const Point3f &p){
 	float X=p.x;
 	float Y=p.y;
 	float Z=p.z;
@@ -144,15 +145,15 @@ Point2f DepthImage::project(Point3f p){
 	float y=Y*fy/Z+cy;
 	return Point2f(x,y);
 }
-float DepthImage::projectiveDistance(Point3f p){
+float DepthImage::projectiveDistance(const Point3f &p){
 	Point2f p2D=project(p);
-	if (this->is2DPointInImage(p2D)){
+	if (this->is2DPointInImage(p2D)){//Does it project in image?
 		int u=p2D.x;
 		int v=p2D.y;
-		if(isGoodDepthPixel(u,v)){
+		if(isGoodDepthPixel(u,v)){//is there depth information of it?
 			float d=this->getDepth(u,v);
 			float pd=d-p.z;
-			if(-0.1<pd && pd<0.1){
+			if(-0.5<pd && pd<0.5){//Is it too far or too near?
 				//cout << "pd="<<pd << "\td=" << d <<" x=" << p.x << " y=" << p.y << " z=" << p.z <<" u=" << u << " v=" << v <<endl;
 			    return pd;
 			}
@@ -160,16 +161,16 @@ float DepthImage::projectiveDistance(Point3f p){
 	}
 	return 1e32; //infinity a big number
 }
-bool DepthImage::is2DPointInImage(Point2f p){
+bool DepthImage::is2DPointInImage(Point2f &p){
 	int u=p.x;
 	int v=p.y;
 	if (u<0)
 		return false;
 	if (v<0)
 		return false;
-	if (u>dImg.cols)
+	if (u>=dImg.cols)
 		return false;
-	if (v>dImg.rows)
+	if (v>=dImg.rows)
 		return false;
 	return true;
 }
