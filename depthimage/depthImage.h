@@ -50,6 +50,7 @@ public:
 	DepthImage();
 	DepthImage(string basepath,int nImg);
 	virtual ~DepthImage();
+	// u is column or X axis, v is row or Y axis
 	inline Vec3b getColor(int u,int v){return cImg.at<Vec3b>(v,u);}
 	inline Vec3b getColor(Point2f p){return getColor((int)p.x,(int)p.y);}
 	inline void  setColor(int u,int v,Vec3b c){cImg.at<Vec3b>(v,u)=c;}
@@ -63,10 +64,13 @@ public:
 	Point3f getPoint3D(Point2f p){return getPoint3D((int)p.x,(int)p.y);}
 	Point3f getPoint3Ddeep(int u,int v,float deep);
 	Point2f project(const Point3f &p);
+	Point2f projectGlobal(Point3f &p);
 	bool is2DPointInImage(Point2f &p);
-	float projectiveDistance(const Point3f &p);
+	float projectiveDistance      (Point3f &p);
+	float projectiveDistanceGlobal(Point3f &pg);
+	inline bool isGoodDepthPixel(Point2f &p){int u=p.x;int v=p.y;return isGoodDepthPixel(u,v);}//d==0 bad
 	inline bool isGoodDepthPixel(int u,int v){float d=dImg.at<float>(v,u);return d>1e-6;}//d==0 bad
-	inline bool isGoodPoint3D(Point3f p){return p.z>0.001;}//Z==0 bad
+	inline bool isGoodPoint3D(Point3f p){return p.z>0.0001;}//Z==0 bad
 	vector<Point3f> getPoints3D();
 	vector<Point2f> getPoints2D();
 	vector<Point3f> getGlobalPoints3D();
@@ -78,11 +82,11 @@ public:
 	inline const Mat& getGradYImg() const {return gYImg;}
 	inline void setImg(const Mat& img) {
 		cImg = img;
-		cvtColor(img,gImg,CV_BGR2GRAY);
-		//Mat gtemp;
-		//cvtColor(img,gtemp,CV_BGR2GRAY);
-		//gtemp.convertTo(gImg,CV_32F);
-		//gImg/=255;
+		//cvtColor(img,gImg,CV_BGR2GRAY);
+		Mat gtemp;
+		cvtColor(img,gtemp,CV_BGR2GRAY);
+		gtemp.convertTo(gImg,CV_32F);
+		gImg/=255;
 	}
 	inline const Mat& getDepth() const {return dImg;	}
 	void setDepth(const Mat& img);

@@ -145,14 +145,26 @@ Point2f DepthImage::project(const Point3f &p){
 	float y=Y*fy/Z+cy;
 	return Point2f(x,y);
 }
-float DepthImage::projectiveDistance(const Point3f &p){
+Point2f DepthImage::projectGlobal(Point3f &pg){
+	Point3f p=toLocal(pg);
+	return project(p);
+}
+// pg is a global 3D point
+float DepthImage::projectiveDistanceGlobal(Point3f &pg){
+	Point3f p=toLocal(pg);
+	return projectiveDistance(p);
+}
+// p is a local 3D point
+float DepthImage::projectiveDistance(Point3f &p){
 	Point2f p2D=project(p);
 	if (this->is2DPointInImage(p2D)){//Does it project in image?
 		int u=p2D.x;
 		int v=p2D.y;
 		if(isGoodDepthPixel(u,v)){//is there depth information of it?
 			float d=this->getDepth(u,v);
-			float pd=d-p.z;
+			// negative value is in front of the surface
+			// positive value is behind the surface
+			float pd=p.z-d;
 			if(-0.5<pd && pd<0.5){//Is it too far or too near?
 				//cout << "pd="<<pd << "\td=" << d <<" x=" << p.x << " y=" << p.y << " z=" << p.z <<" u=" << u << " v=" << v <<endl;
 			    return pd;
