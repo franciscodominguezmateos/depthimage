@@ -26,6 +26,8 @@ class DepthImage {
 	Mat gImg;//gray image float
 	Mat gXImg;
 	Mat gYImg;
+	// a CV_32FC3 normal image
+	Mat nImg;
 	Mat mImg;// Mask image. Do I need it?
 	//Rt transformation for this camera
 	Mat R;
@@ -53,6 +55,15 @@ public:
 	// u is column or X axis, v is row or Y axis
 	inline Vec3b getColor(int u,int v){return cImg.at<Vec3b>(v,u);}
 	inline Vec3b getColor(Point2f p){return getColor((int)p.x,(int)p.y);}
+	inline Point3f getNormal(int u,int v){return nImg.at<Vec3f>(v,u);}
+	inline Point3f getNormal(Point2f p){return getNormal((int)p.x,(int)p.y);}
+	inline Point3f getNormalGlobal(int u,int v){
+		Point3f p=getNormal(u,v);
+	    Mat mp=(Mat_<double>(3, 1) << p.x, p.y, p.z);
+	    Mat tp=R*mp;
+	    return Point3f(tp.at<double>(0,0),tp.at<double>(1,0),tp.at<double>(2,0));
+	}
+	inline Point3f getNormalGlobal(Point2f p){return getNormalGlobal((int)p.x,(int)p.y);}
 	inline void  setColor(int u,int v,Vec3b c){cImg.at<Vec3b>(v,u)=c;}
 	inline float getDepth(int u,int v){return dImg.at<float>(v,u);}
 	inline float getDepth(Point2f p){return getDepth((int)p.x,(int)p.y);}
@@ -88,6 +99,7 @@ public:
 		gtemp.convertTo(gImg,CV_32F);
 		gImg/=255;
 	}
+	inline const Mat& getNormals() const {return nImg;}
 	inline const Mat& getDepth() const {return dImg;	}
 	void setDepth(const Mat& img);
 	inline void computeK(){
@@ -216,6 +228,7 @@ public:
     	        normals.at<Vec3f>(x, y) = n;
     	    }
     	}
+    	nImg=normals;
     }
 	void glRender();
 };
