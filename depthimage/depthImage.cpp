@@ -259,6 +259,7 @@ void DepthImage::setDepth(const Mat& img) {
 	centroid.x/=pts.size();
 	centroid.y/=pts.size();
 	centroid.z/=pts.size();
+	computeNormals();
 }
 void DepthImage::glRender(){
 	glPointSize(2.0);
