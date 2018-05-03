@@ -193,6 +193,30 @@ public:
     	  Scharr( gray, gYImg, ddepth, 0, 1, scale, delta, BORDER_DEFAULT );
     	  //Sobel( gray, gYImg, ddepth, 0, 1, 3, scale, delta, BORDER_DEFAULT );
     }
+    void computeNormals(){
+    	Mat depth=dImg;
+    	if(depth.type() != CV_32FC1)
+    	        depth.convertTo(depth, CV_32FC1);
+
+    	Mat normals(depth.size(), CV_32FC3);
+
+    	for(int x = 0; x < depth.rows; ++x)
+    	{
+    	    for(int y = 0; y < depth.cols; ++y)
+    	    {
+    	        // use float instead of double otherwise you will not get the correct result
+    	        // check my updates in the original post. I have not figure out yet why this
+    	        // is happening.
+    	        float dzdx = (depth.at<float>(x+1, y) - depth.at<float>(x-1, y)) / 2.0;
+    	        float dzdy = (depth.at<float>(x, y+1) - depth.at<float>(x, y-1)) / 2.0;
+
+    	        Vec3f d(-dzdx, -dzdy, 1.0f);
+
+    	        Vec3f n = normalize(d);
+    	        normals.at<Vec3f>(x, y) = n;
+    	    }
+    	}
+    }
 	void glRender();
 };
 
