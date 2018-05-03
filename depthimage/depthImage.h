@@ -179,6 +179,8 @@ public:
     		cv::pyrDown(gXImg,di.gXImg,sz);
     	if(!gYImg.empty())
     		cv::pyrDown(gYImg,di.gYImg,sz);
+    	if(!nImg.empty())
+    		cv::pyrDown(nImg,di.nImg,sz);
     	di.fx*=s;
     	di.fy*=s;
     	di.cx*=s;
