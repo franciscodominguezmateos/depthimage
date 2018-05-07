@@ -213,6 +213,7 @@ public:
     	        depth.convertTo(depth, CV_32FC1);
 
     	Mat normals(depth.size(), CV_32FC3);
+    	Vec3f n;
 
     	for(int x = 0; x < depth.rows; ++x)
     	{
@@ -221,12 +222,27 @@ public:
     	        // use float instead of double otherwise you will not get the correct result
     	        // check my updates in the original post. I have not figure out yet why this
     	        // is happening.
-    	        float dzdx = (depth.at<float>(x+1, y) - depth.at<float>(x-1, y)) / 2.0;
-    	        float dzdy = (depth.at<float>(x, y+1) - depth.at<float>(x, y-1)) / 2.0;
-
-    	        Vec3f d(-dzdx, -dzdy, 1.0f);
-
-    	        Vec3f n = normalize(d);
+    	    	float dx1y=depth.at<float>(x+1, y);
+    	    	float dx0y=depth.at<float>(x-1, y);
+    	    	float dxy1=depth.at<float>(x, y+1);
+    	    	float dxy0=depth.at<float>(x, y-1);
+    	    	//Are all valid depth values
+    	    	if(dx1y>0.01 && dx0y>0.01 && dxy1>0.01 &&dxy0>0.0){
+					float dzdx = ( dx1y- dx0y) / 2.0;
+					float dzdy = ( dxy1- dxy0) / 2.0;
+    	    		// could be worth check if they are not big differences
+					if(abs(dzdx)<0.1 && abs(dzdy)<0.1){
+						Vec3f d(-dzdx, -dzdy, 1.0f);
+						n = normalize(d);
+					}
+					else{
+						cout << "dzdx="<<dzdx<<",dzdy="<<dzdy<<endl;
+						n=Vec3f(0,0,0);
+					}
+    	    	}
+    	    	else{
+    	    		n=Vec3f(0,0,0);
+    	    	}
     	        normals.at<Vec3f>(x, y) = n;
     	    }
     	}
