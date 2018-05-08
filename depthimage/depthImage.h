@@ -207,6 +207,12 @@ public:
     	  Scharr( gray, gYImg, ddepth, 0, 1, scale, delta, BORDER_DEFAULT );
     	  //Sobel( gray, gYImg, ddepth, 0, 1, 3, scale, delta, BORDER_DEFAULT );
     }
+    inline bool isBadNormal(Point3f vn){
+    	return isnan(vn.x) || isnan(vn.y) || isnan(vn.z);
+    }
+    inline bool isGoodNormal(int u,int v){
+    	return !isBadNormal(nImg.at<Vec3f>(v, u));
+    }
     void computeNormals(){
     	Mat depth=dImg;
     	if(depth.type() != CV_32FC1)
@@ -214,34 +220,39 @@ public:
 
     	Mat normals(depth.size(), CV_32FC3);
     	Vec3f n;
-
+        // x are rows and y are cols !!!!!!!!!!!!!
     	for(int x = 0; x < depth.rows; ++x)
     	{
     	    for(int y = 0; y < depth.cols; ++y)
     	    {
-    	        // use float instead of double otherwise you will not get the correct result
-    	        // check my updates in the original post. I have not figure out yet why this
-    	        // is happening.
-    	    	float dx1y=depth.at<float>(x+1, y);
-    	    	float dx0y=depth.at<float>(x-1, y);
-    	    	float dxy1=depth.at<float>(x, y+1);
-    	    	float dxy0=depth.at<float>(x, y-1);
-    	    	//Are all valid depth values
-    	    	if(dx1y>0.01 && dx0y>0.01 && dxy1>0.01 &&dxy0>0.0){
-					float dzdx = ( dx1y- dx0y) / 2.0;
-					float dzdy = ( dxy1- dxy0) / 2.0;
-    	    		// could be worth check if they are not big differences
-					if(abs(dzdx)<0.1 && abs(dzdy)<0.1){
-						Vec3f d(-dzdx, -dzdy, 1.0f);
-						n = normalize(d);
+    	    	if(isGoodDepthPixel(y,x)){
+					// use float instead of double otherwise you will not get the correct result
+					// check my updates in the original post. I have not figure out yet why this
+					// is happening.
+					float dx1y=depth.at<float>(x+1, y);
+					float dx0y=depth.at<float>(x-1, y);
+					float dxy1=depth.at<float>(x, y+1);
+					float dxy0=depth.at<float>(x, y-1);
+					//Are all valid depth values
+					if(dx1y>0.01 && dx0y>0.01 && dxy1>0.01 &&dxy0>0.0){
+						float dzdx = ( dx1y- dx0y) / 2.0;
+						float dzdy = ( dxy1- dxy0) / 2.0;
+						// could be worth check if they are not big differences
+						if(abs(dzdx)<0.01 && abs(dzdy)<0.01){
+							Vec3f d(-dzdx, -dzdy, 1.0f);
+							n = normalize(d);
+						}
+						else{
+							//cout << "dzdx="<<dzdx<<",dzdy="<<dzdy<<endl;
+							n=Vec3f(NAN,NAN,NAN);
+						}
 					}
 					else{
-						cout << "dzdx="<<dzdx<<",dzdy="<<dzdy<<endl;
-						n=Vec3f(0,0,0);
+						n=Vec3f(NAN,NAN,NAN);
 					}
     	    	}
     	    	else{
-    	    		n=Vec3f(0,0,0);
+    	    		n=Vec3f(NAN,NAN,NAN);
     	    	}
     	        normals.at<Vec3f>(x, y) = n;
     	    }
