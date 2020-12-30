@@ -97,15 +97,7 @@ public:
 	    ), dtype=numpy.float64)
 
 	*/
-	void getTransform(vector<string> l){
-		int pidx=4;
-		double tx=atof(l[pidx+1].c_str());
-		double ty=atof(l[pidx+2].c_str());
-		double tz=atof(l[pidx+3].c_str());
-		double qx=atof(l[pidx+4].c_str());
-		double qy=atof(l[pidx+5].c_str());
-		double qz=atof(l[pidx+6].c_str());
-		double qw=atof(l[pidx+7].c_str());
+	void quaternions2Rt(double tx,double ty,double tz,double qx,double qy,double qz,double qw){
 		double nq=qx*qx + qy*qy + qz*qz + qw*qw;
 		qx*=sqrt(2.0/nq);
 		qy*=sqrt(2.0/nq);
@@ -115,6 +107,17 @@ public:
 				                        qx*qy+qz*qw,1.0-qx*qx-qz*qz,    qy*qz-qx*qw,
 										qx*qz-qy*qw,    qy*qz+qx*qw,1.0-qx*qx-qy*qy);
 		t  = (Mat_<double>(3, 1) << tx, ty, tz);
+	}
+	void getTransform(vector<string> l){
+		int pidx=4;
+		double tx=atof(l[pidx+1].c_str());
+		double ty=atof(l[pidx+2].c_str());
+		double tz=atof(l[pidx+3].c_str());
+		double qx=atof(l[pidx+4].c_str());
+		double qy=atof(l[pidx+5].c_str());
+		double qz=atof(l[pidx+6].c_str());
+		double qw=atof(l[pidx+7].c_str());
+		quaternions2Rt(tx,ty,tz,qx,qy,qz,qw);
 	}
 	DepthImage() {
 		level=1;
@@ -205,8 +208,8 @@ public:
     	return Point3f(tp.at<double>(0,0),tp.at<double>(1,0),tp.at<double>(2,0));
     }
 	// u is column or X axis, v is row or Y axis
-	inline Vec3b getColor(int u,int v){return cImg.at<Vec3b>(v,u);}
-	inline Vec3b getColor(Point2f p){return getColor((int)p.x,(int)p.y);}
+	inline Vec3b   getColor(int u,int v){return cImg.at<Vec3b>(v,u);}
+	inline Vec3b   getColor(Point2f p){return getColor((int)p.x,(int)p.y);}
 	inline Point3f getNormal(int u,int v){return nImg.at<Vec3f>(v,u);}
 	inline Point3f getNormal(Point2f p){return getNormal((int)p.x,(int)p.y);}
 	inline Point3f getNormalGlobal(int u,int v){
@@ -226,8 +229,7 @@ public:
 		Point3f p=getPoint3D(u,v);
 		return toGlobal(p);
 	}
-	Point3f getPoint3D(Point2f p){return getPoint3D((int)p.x,(int)p.y);}
-	Point3f getPoint3Ddeep(int u,int v,float deep){
+	inline Point3f getPoint3Ddeep(int u,int v,float deep){
 		float x=u;
 		float y=v;
 		float &Z=deep;
@@ -235,6 +237,10 @@ public:
 		float Y = (y - cy) * Z / fy;
 		return Point3f(X,Y,Z);
 	}
+	Point3f getPoint3D(int u,int v){
+		return getPoint3Ddeep(u,v,dImg.at<float>(v,u));
+	}
+	Point3f getPoint3D(Point2f p){return getPoint3D((int)p.x,(int)p.y);}
 	Point2f project(const Point3f &p){
 		const float &X=p.x;
 		const float &Y=p.y;
@@ -274,15 +280,6 @@ public:
 	inline bool isGoodDepthPixel(Point2f &p){int u=p.x;int v=p.y;return isGoodDepthPixel(u,v);}//d==0 bad
 	inline bool isGoodDepthPixel(int u,int v){float d=dImg.at<float>(v,u);return d>1e-6;}//d==0 bad
 	inline bool isGoodPoint3D(Point3f p){return p.z>0.0001;}//Z==0 bad
-	Point3f getPoint3D(int u,int v){
-		float x=u;
-		float y=v;
-		float deep=dImg.at<float>(v,u);
-		float Z=deep;
-		float X = (x - cx) * Z / fx;
-		float Y = (y - cy) * Z / fy;
-		return Point3f(X,Y,Z);
-	}
 	vector<Point2f> getPoints2D(){
 		vector<Point2f> vp;
 		for (int v=0;v<dImg.rows;v++){
@@ -429,6 +426,33 @@ public:
 	inline const Mat& getGray()     const {return gImg;}
 	inline const Mat& getGradXImg() const {return gXImg;}
 	inline const Mat& getGradYImg() const {return gYImg;}
+	inline const Mat& gerNormals()  const {return nImg;}
+	Mat getImgDepth(){
+		DepthImage &di=*this;
+		Mat cimg=di.getImg();
+		cimg.convertTo(cimg,CV_32FC3);
+		cimg/=255;
+		vector<Mat> channels;
+		cv::split(cimg, channels);
+		Mat dimg=di.getDepth();
+		Mat img;
+		img.convertTo(img,CV_32FC4);
+		vector<Mat> vd = { channels[0], channels[1],channels[2], dimg };
+		merge(vd, img);
+		return img;
+	}
+	Mat getNormDepth(){
+		DepthImage &di=*this;
+		Mat nimg=di.getNormals();
+		vector<Mat> channels;
+		cv::split(nimg, channels);
+		Mat dimg=di.getDepth();
+		Mat img;
+		img.convertTo(img,CV_32FC4);
+		vector<Mat> vd = { channels[0], channels[1],channels[2], dimg };
+		merge(vd, img);
+		return img;
+	}
 	inline void setImg(const Mat& img) {
 		cImg = img;
 		//cvtColor(img,gImg,CV_BGR2GRAY);
@@ -445,18 +469,18 @@ public:
 								   0.00,  0.00, 1.00);
 	}
 	inline float getCx() const {return cx;	}
-	inline void setCx(float cx) {this->cx = cx;computeK();}
+	inline void  setCx(float cx) {this->cx = cx;computeK();}
 	inline float getCy() const {return cy;	}
-	inline void setCy(float cy) {this->cy = cy;computeK();}
+	inline void  setCy(float cy) {this->cy = cy;computeK();}
 	inline float getFx() const {return fx;	}
-	inline void setFx(float fx) {this->fx = fx;computeK();}
+	inline void  setFx(float fx) {this->fx = fx;computeK();}
 	inline float getFy() const {return fy;	}
-	inline void setFy(float fy) {this->fy = fy;computeK();}
+	inline void  setFy(float fy) {this->fy = fy;computeK();}
 	inline Mat getK(){return K;}
 	inline float getFactor() const {return factor;	}
-	inline void setFactor(float factor) {this->factor = factor;}
+	inline void  setFactor(float factor) {this->factor = factor;}
 	inline float getLevel() const {return level;}
-	inline void setLevel(float level) {this->level = level;}
+	inline void  setLevel(float level) {this->level = level;}
 	inline int cols(){return cImg.cols;}
 	inline int rows(){return cImg.rows;}
 	inline int size(){return cImg.cols*cImg.rows;}
@@ -482,30 +506,37 @@ public:
     	Size sz(cImg.cols*s,cImg.rows*s);
     	cv::pyrDown(cImg,di.cImg,sz);
     	cv::pyrDown(gImg,di.gImg,sz);
-    	//cv::pyrDown(dImg,di.dImg,sz);
     	//Not so easy to pyrDown depth image dImg,
     	//it is compulsory to reset 0 depths
         //this below doesn't work
     	di.dImg=Mat::zeros(sz, dImg.type());
-
+    	//cv::pyrDown(dImg,di.dImg,sz);
+    	//copy without filtering
     	for(float i=0;i<dImg.rows;i+=1.0/s)
     		for(float j=0;j<dImg.cols;j+=1.0/s){
-    		    float x=j*s;
-    			float y=i*s;
-    			//if(getDepth(j,i)<0.001)
-    			di.dImg.at<float>(y,x)=getDepth(j,i);
+				float x=j*s;
+				float y=i*s;
+				di.dImg.at<float>(y,x)=dImg.at<float>(i,j);
     		}
-
+        //now set to zero all zero depth
+    	for(float i=0;i<dImg.rows;i+=1.0/s)
+    		for(float j=0;j<dImg.cols;j+=1.0/s){
+    			if(getDepth(j,i)<0.001){
+        		    float x=j*s;
+        			float y=i*s;
+        			di.dImg.at<float>(y,x)=0;
+    			}
+    		}
     	if(!gXImg.empty())
     		cv::pyrDown(gXImg,di.gXImg,sz);
     	if(!gYImg.empty())
     		cv::pyrDown(gYImg,di.gYImg,sz);
     	if(!nImg.empty())
     		cv::pyrDown(nImg,di.nImg,sz);
-    	di.fx*=s;
-    	di.fy*=s;
-    	di.cx*=s;
-    	di.cy*=s;
+    	di.fx=fx*s;
+    	di.fy=fy*s;
+    	di.cx=cx*s;
+    	di.cy=cy*s;
     	R.copyTo(di.R);
     	t.copyTo(di.t);
     	return di;
@@ -538,44 +569,62 @@ public:
     	Mat depth=dImg;
     	if(depth.type() != CV_32FC1)
     	        depth.convertTo(depth, CV_32FC1);
-
     	Mat normals(depth.size(), CV_32FC3);
     	Vec3f n;
-        // x are rows and y are cols !!!!!!!!!!!!!
-    	for(int x = 0; x < depth.rows; ++x)
-    	{
-    	    for(int y = 0; y < depth.cols; ++y)
-    	    {
-    	    	if(isGoodDepthPixel(y,x)){
+    	for(int x = 0; x < depth.cols; ++x){
+    	    for(int y = 0; y < depth.rows; ++y){
+    	    	if(isGoodDepthPixel(x,y)){
 					// use float instead of double otherwise you will not get the correct result
 					// check my updates in the original post. I have not figure out yet why this
 					// is happening.
-					float dx1y=depth.at<float>(x+1, y);
-					float dx0y=depth.at<float>(x-1, y);
-					float dxy1=depth.at<float>(x, y+1);
-					float dxy0=depth.at<float>(x, y-1);
+					float dx1y=depth.at<float>(y  ,x+1);
+					float dx0y=depth.at<float>(y  ,x-1);
+					float dxy1=depth.at<float>(y+1,x);
+					float dxy0=depth.at<float>(y-1,x);
+					float dxy =depth.at<float>(y  ,x);
 					//Are all valid depth values
-					if(dx1y>0.01 && dx0y>0.01 && dxy1>0.01 &&dxy0>0.0){
+					if(dx1y>0.01 && dx0y>0.01 && dxy1>0.01 &&dxy0>0.01 && dxy>0.01){
 						float dzdx = ( dx1y- dx0y) / 2.0;
 						float dzdy = ( dxy1- dxy0) / 2.0;
 						// could be worth check if they are not big differences
-						if(abs(dzdx)<0.01 && abs(dzdy)<0.01){
-							Vec3f d(-dzdx, -dzdy, 1.0f);
-							n = normalize(d);
+						if(abs(dzdx)<0.02 && abs(dzdy)<0.02){
+							//Vec3f d(-dzdx, -dzdy, 0.005f);
+				            // 3d pixels, think (x,y, depth)
+				             /* * * * *
+				              * * t * *
+				              * * c l *
+				              * * * * */
+							//Vec3f t(y-1,x  ,dxy0);
+							Vec3f t(getPoint3D(x  ,y-1));
+							//Vec3f l(y  ,x-1,dx0y);
+							Vec3f l(getPoint3D(x+1,y));
+							//Vec3f c(y  ,x  ,dxy);
+							Vec3f c(getPoint3D(x  ,y));
+							Vec3f dx=l-c;
+							Vec3f dy=t-c;
+							Vec3f d = dx.cross(dy);
+							n=normalize(d);
 						}
 						else{
 							//cout << "dzdx="<<dzdx<<",dzdy="<<dzdy<<endl;
-							n=Vec3f(NAN,NAN,NAN);
+							n=Vec3f(0,0,0);
 						}
 					}
 					else{
-						n=Vec3f(NAN,NAN,NAN);
+						n=Vec3f(0,0,0);
 					}
     	    	}
     	    	else{
-    	    		n=Vec3f(NAN,NAN,NAN);
+    	    		n=Vec3f(0,0,0);
     	    	}
-    	        normals.at<Vec3f>(x, y) = n;
+    	        normals.at<Vec3f>(y, x) = n;
+    	    }
+    	}
+    	for(int x = 0; x < depth.cols; ++x){
+    	    for(int y = 0; y < depth.rows; ++y){
+    	    	if(normals.at<Vec3f>(y,x)==Vec3f(0,0,0)){
+    	    		depth.at<float>(y,x)=0;
+    	    	}
     	    }
     	}
     	nImg=normals;
